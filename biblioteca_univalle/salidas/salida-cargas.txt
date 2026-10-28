@@ -1,0 +1,193 @@
+===== 1. libros limpio
+SET
+BEGIN
+TRUNCATE TABLE
+COPY 33
+DELETE 1
+DELETE 0
+INSERT 0 32
+UPDATE 32
+UPDATE 0
+INSERT 0 8
+INSERT 0 32
+INSERT 0 32
+INSERT 0 80
+INSERT 0 0
+COMMIT
+ cargadas | rechazadas 
+----------+------------
+       32 |          0
+(1 row)
+
+ linea | motivo | contenido 
+-------+--------+-----------
+(0 rows)
+
+===== 2. libros con errores
+SET
+BEGIN
+TRUNCATE TABLE
+COPY 9
+DELETE 1
+DELETE 0
+INSERT 0 8
+UPDATE 8
+UPDATE 0
+INSERT 0 0
+INSERT 0 0
+INSERT 0 0
+INSERT 0 0
+INSERT 0 8
+COMMIT
+ cargadas | rechazadas 
+----------+------------
+        0 |          8
+(1 row)
+
+ linea |              motivo              |                                          contenido                                          
+-------+----------------------------------+---------------------------------------------------------------------------------------------
+     2 | isbn ya existe en el catálogo    | 9780000000001,Cien años de soledad (edición duplicada),Gabriel García Márquez,Novela,1967,2
+     3 | título vacío                     | 9780000000033,,Julio Cortázar,Novela,1963,3
+     4 | ejemplares no numérico           | 9780000000034,Relato sin ejemplares numéricos,Autor de Prueba,Cuento,2003,dos
+     5 | año no numérico                  | 9780000000035,Relato con año inválido,Autor de Prueba,Cuento,MCMXLIX,2
+     6 | tiene 7 columnas, se esperaban 6 | 9780000000036,Relato con columna de más,Autor de Prueba,Cuento,2004,1,columna_sobrante
+     7 | autor vacío                      | 9780000000037,Relato sin autor,,Novela,2005,1
+     8 | isbn vacío                       | ,Relato sin ISBN,Autor de Prueba,Novela,2010,1
+     9 | ejemplares negativo              | 9780000000038,Relato con ejemplares negativos,Autor de Prueba,Cuento,2011,-3
+(8 rows)
+
+===== 3. libros limpio otra vez
+SET
+BEGIN
+TRUNCATE TABLE
+COPY 33
+DELETE 1
+DELETE 0
+INSERT 0 32
+UPDATE 32
+UPDATE 0
+INSERT 0 0
+INSERT 0 0
+INSERT 0 0
+INSERT 0 0
+INSERT 0 32
+COMMIT
+ cargadas | rechazadas 
+----------+------------
+        0 |         32
+(1 row)
+
+ linea |            motivo             |                                contenido                                
+-------+-------------------------------+-------------------------------------------------------------------------
+     2 | isbn ya existe en el catálogo | 9780000000001,Libro de prueba 1,Julio Cortázar,Cuento,1951,2
+     3 | isbn ya existe en el catálogo | 9780000000002,Libro de prueba 2,Jorge Luis Borges,Poesía,1952,3
+     4 | isbn ya existe en el catálogo | 9780000000003,Libro de prueba 3,Isabel Allende,Ensayo,1953,4
+     5 | isbn ya existe en el catálogo | 9780000000004,Libro de prueba 4,Mario Vargas Llosa,Historia,1954,1
+     6 | isbn ya existe en el catálogo | 9780000000005,Libro de prueba 5,Laura Restrepo,Ciencia,1955,2
+     7 | isbn ya existe en el catálogo | 9780000000006,Libro de prueba 6,Álvaro Mutis,Novela,1956,3
+     8 | isbn ya existe en el catálogo | 9780000000007,Libro de prueba 7,Juan Rulfo,Cuento,1957,4
+     9 | isbn ya existe en el catálogo | 9780000000008,Libro de prueba 8,Gabriel García Márquez,Poesía,1958,1
+    10 | isbn ya existe en el catálogo | 9780000000009,Libro de prueba 9,Julio Cortázar,Ensayo,1959,2
+    11 | isbn ya existe en el catálogo | 9780000000010,Libro de prueba 10,Jorge Luis Borges,Historia,1960,3
+    12 | isbn ya existe en el catálogo | 9780000000011,Libro de prueba 11,Isabel Allende,Ciencia,1961,4
+    13 | isbn ya existe en el catálogo | 9780000000012,Libro de prueba 12,Mario Vargas Llosa,Novela,1962,1
+    14 | isbn ya existe en el catálogo | 9780000000013,Libro de prueba 13,Laura Restrepo,Cuento,1963,2
+    15 | isbn ya existe en el catálogo | 9780000000014,Libro de prueba 14,Álvaro Mutis,Poesía,1964,3
+    16 | isbn ya existe en el catálogo | 9780000000015,Libro de prueba 15,Juan Rulfo,Ensayo,1965,4
+    17 | isbn ya existe en el catálogo | 9780000000016,Libro de prueba 16,Gabriel García Márquez,Historia,1966,1
+    18 | isbn ya existe en el catálogo | 9780000000017,Libro de prueba 17,Julio Cortázar,Ciencia,1967,2
+    19 | isbn ya existe en el catálogo | 9780000000018,Libro de prueba 18,Jorge Luis Borges,Novela,1968,3
+    20 | isbn ya existe en el catálogo | 9780000000019,Libro de prueba 19,Isabel Allende,Cuento,1969,4
+    21 | isbn ya existe en el catálogo | 9780000000020,Libro de prueba 20,Mario Vargas Llosa,Poesía,1970,1
+    22 | isbn ya existe en el catálogo | 9780000000021,Libro de prueba 21,Laura Restrepo,Ensayo,1971,2
+    23 | isbn ya existe en el catálogo | 9780000000022,Libro de prueba 22,Álvaro Mutis,Historia,1972,3
+    24 | isbn ya existe en el catálogo | 9780000000023,Libro de prueba 23,Juan Rulfo,Ciencia,1973,4
+    25 | isbn ya existe en el catálogo | 9780000000024,Libro de prueba 24,Gabriel García Márquez,Novela,1974,1
+    26 | isbn ya existe en el catálogo | 9780000000025,Libro de prueba 25,Julio Cortázar,Cuento,1975,2
+    27 | isbn ya existe en el catálogo | 9780000000026,Libro de prueba 26,Jorge Luis Borges,Poesía,1976,3
+    28 | isbn ya existe en el catálogo | 9780000000027,Libro de prueba 27,Isabel Allende,Ensayo,1977,4
+    29 | isbn ya existe en el catálogo | 9780000000028,Libro de prueba 28,Mario Vargas Llosa,Historia,1978,1
+    30 | isbn ya existe en el catálogo | 9780000000029,Libro de prueba 29,Laura Restrepo,Ciencia,1979,2
+    31 | isbn ya existe en el catálogo | 9780000000030,Libro de prueba 30,Álvaro Mutis,Novela,1980,3
+    32 | isbn ya existe en el catálogo | 9780000000031,Libro de prueba 31,Juan Rulfo,Cuento,1981,4
+    33 | isbn ya existe en el catálogo | 9780000000032,Libro de prueba 32,Gabriel García Márquez,Poesía,1982,1
+(32 rows)
+
+===== 4. lectores limpio
+SET
+BEGIN
+TRUNCATE TABLE
+COPY 21
+DELETE 1
+DELETE 0
+INSERT 0 20
+UPDATE 20
+UPDATE 0
+INSERT 0 20
+INSERT 0 0
+COMMIT
+ cargadas | rechazadas 
+----------+------------
+       20 |          0
+(1 row)
+
+ linea | motivo | contenido 
+-------+--------+-----------
+(0 rows)
+
+===== 5. lectores con errores
+SET
+BEGIN
+TRUNCATE TABLE
+COPY 7
+DELETE 1
+DELETE 0
+INSERT 0 6
+UPDATE 6
+UPDATE 0
+INSERT 0 0
+INSERT 0 6
+COMMIT
+ cargadas | rechazadas 
+----------+------------
+        0 |          6
+(1 row)
+
+ linea |                    motivo                    |                      contenido                      
+-------+----------------------------------------------+-----------------------------------------------------
+     2 | documento ya existe                          | 1000000,Ana,Gómez,ana.otra@correo.co,3101112233
+     3 | documento vacío                              | ,Sin,Documento,sindoc@correo.co,3101112234
+     4 | documento no numérico o de longitud inválida | 12AB45,Doc,Letras,docletras@correo.co,3101112235
+     5 | correo mal formado                           | 2000001,Correo,Malo,correo-sin-arroba.co,3101112236
+     6 | teléfono no numérico o de longitud inválida  | 2000002,Tel,Letras,tel@correo.co,310ABC1122
+     7 | tiene 4 columnas, se esperaban 5             | 2000003,Faltan,Columnas,faltan@correo.co
+(6 rows)
+
+===== 6. CSV propio
+SET
+BEGIN
+TRUNCATE TABLE
+COPY 9
+DELETE 1
+DELETE 0
+INSERT 0 8
+UPDATE 8
+UPDATE 1
+INSERT 0 0
+INSERT 0 5
+INSERT 0 5
+INSERT 0 10
+INSERT 0 3
+COMMIT
+ cargadas | rechazadas 
+----------+------------
+        5 |          3
+(1 row)
+
+ linea |                motivo                 |                                contenido                                
+-------+---------------------------------------+-------------------------------------------------------------------------
+     7 | isbn repetido en el archivo (línea 3) | 9789580000102,Delirio (fila repetida),Laura Restrepo,Novela,2004,5
+     8 | año en el futuro                      | 9789580000106,Libro que aún no se publica,Autor de Prueba,Ensayo,2031,1
+     9 | isbn no tiene 13 dígitos              | 9585000107,Libro con ISBN de 10 dígitos,Autor de Prueba,Historia,1999,2
+(3 rows)
+

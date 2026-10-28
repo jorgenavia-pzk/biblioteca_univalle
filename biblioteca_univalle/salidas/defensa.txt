@@ -1,0 +1,23 @@
+===== Última línea de defensa: regla 'título vacío' comentada
+SET
+BEGIN
+TRUNCATE TABLE
+COPY 9
+DELETE 1
+DELETE 0
+INSERT 0 8
+UPDATE 8
+UPDATE 0
+INSERT 0 0
+psql:/tmp/pgd/sin_regla.sql:90: ERROR:  new row for relation "libro" violates check constraint "libro_titulo_check"
+DETAIL:  Failing row contains (33, 9780000000033, , Novela, 1963, t).
+ libros 
+--------
+     32
+(1 row)
+
+ filas_bitacora 
+----------------
+              0
+(1 row)
+
