@@ -1,0 +1,11 @@
+documento,nombres,apellidos,correo,telefono
+2000000001,Ana María,Torres Gil,Ana.Torres@Correo-Ejemplo.edu.co,300 200 3001
+2000000002,Luis Felipe,Ortega Mena,luis.ortega@correo-ejemplo.edu.co,(300) 200-3002
+2000000003,Karen,Solís Rey,karen.solis@correo-ejemplo.edu.co,3002003003
+2000000004,Mateo,Vidal Cruz,mateo.vidal@correo-ejemplo.edu.co,3002003004
+2000000005,Lina,Pardo Lugo,lina.pardo@correo-ejemplo.edu.co,3002003005
+2000000006,Ana,Torres Copia,ANA.TORRES@correo-ejemplo.edu.co,3002003006
+2000000003,Karen,Solís Repetida,karen.otra@correo-ejemplo.edu.co,3002003007
+123,Doc,Corto,doc.corto@correo-ejemplo.edu.co,3002003008
+2000000009,Tel,Corto,tel.corto@correo-ejemplo.edu.co,12345
+2000000010,Otro,Mariana,mariana.gomez@correo-ejemplo.edu.co,3002003010

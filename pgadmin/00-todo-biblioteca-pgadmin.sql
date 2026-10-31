@@ -86,8 +86,11 @@ CREATE TABLE prestamo (
 INSERT INTO rol (nombre) VALUES ('LECTOR'), ('BIBLIOTECARIO'), ('ADMINISTRADOR'), ('AUDITOR');
 
 -- =====================================================================
--- Carga desde CSV: bitácora y tablas de paso
+-- Bitácora de cargas desde CSV
 -- =====================================================================
+-- Las tablas de paso (staging) NO viven en el esquema: cada script de carga
+-- (postgres/scripts/carga-*.sql) crea las suyas como tablas TEMPORALES.
+-- Lo único que queda aquí es la bitácora, que sí es dato persistente.
 
 -- Bitácora de filas rechazadas: persiste entre cargas
 CREATE TABLE rechazo_carga (
@@ -97,37 +100,6 @@ CREATE TABLE rechazo_carga (
     contenido  text         NOT NULL,
     motivo     text         NOT NULL,
     fecha      timestamptz  NOT NULL DEFAULT now()
-);
-
--- Tablas de paso: todo texto, sin restricciones. Cada carga las vacía.
-CREATE TABLE stg_linea (
-    n      integer  GENERATED ALWAYS AS IDENTITY,
-    linea  text
-);
-
-CREATE TABLE stg_libro (
-    linea_csv               integer,
-    contenido               text,
-    num_campos              integer,
-    isbn                    text,
-    titulo                  text,
-    autor                   text,
-    categoria               text,
-    anio_publicacion        text,
-    ejemplares_disponibles  text,
-    motivo                  text      -- NULL = la fila pasó la validación
-);
-
-CREATE TABLE stg_lector (
-    linea_csv   integer,
-    contenido   text,
-    num_campos  integer,
-    documento   text,
-    nombres     text,
-    apellidos   text,
-    correo      text,
-    telefono    text,
-    motivo      text
 );
 
 -- ===== CARGA LIBROS =====
@@ -151,7 +123,27 @@ SET search_path TO biblioteca, public;
 
 BEGIN;
 
-TRUNCATE stg_linea, stg_libro RESTART IDENTITY;
+-- Tablas de paso (staging): TEMPORALES. Existen solo en esta sesión y se borran
+-- solas al terminar la transacción (ON COMMIT DROP). No quedan en el esquema,
+-- no guardan datos personales entre cargas y dos cargas simultáneas no se pisan.
+CREATE TEMP TABLE stg_linea (
+    n      integer  GENERATED ALWAYS AS IDENTITY,
+    linea  text
+) ON COMMIT DROP;
+
+CREATE TEMP TABLE stg_libro (
+    linea_csv               integer,
+    contenido               text,
+    num_campos              integer,
+    isbn                    text,
+    titulo                  text,
+    autor                   text,
+    categoria               text,
+    anio_publicacion        text,
+    ejemplares_disponibles  text,
+    motivo                  text      -- NULL = la fila pasó la validación
+) ON COMMIT DROP;
+
 
 -- 1. Leer el archivo tal cual: una fila por línea (FORMAT text no parte por comas)
 COPY stg_linea (linea) FROM '/scripts/datos/libros_semilla.csv' WITH (FORMAT text);
@@ -240,9 +232,7 @@ SELECT '/scripts/datos/libros_semilla.csv', linea_csv, contenido, motivo
 FROM stg_libro
 WHERE motivo IS NOT NULL;
 
-COMMIT;
-
--- Resumen de la carga
+-- Resumen de la carga (antes del COMMIT: las tablas temporales desaparecen al confirmar)
 SELECT count(*) FILTER (WHERE motivo IS NULL)     AS cargadas,
        count(*) FILTER (WHERE motivo IS NOT NULL) AS rechazadas
 FROM stg_libro;
@@ -251,6 +241,8 @@ SELECT linea_csv AS linea, motivo, contenido
 FROM stg_libro
 WHERE motivo IS NOT NULL
 ORDER BY linea_csv;
+
+COMMIT;
 
 -- ===== CARGA LECTORES =====
 -- VERSION PGADMIN (Query Tool). Para otro CSV, cambia la ruta en las 2 apariciones de '/scripts/datos/...csv' (Ctrl+H).
@@ -265,7 +257,7 @@ ORDER BY linea_csv;
 --
 -- Columnas que el CSV no trae y cómo se provisionan:
 --   username   = documento
---   password   = crypt(documento, gen_salt('bf'))  → hash; se pide cambiarla al primer ingreso
+--   password   = crypt(documento, gen_salt('bf', 10))  → hash; se pide cambiarla al primer ingreso
 --   id_rol     = el de 'LECTOR'
 --   creado_por = NULL (carga inicial, no la creó un administrador)
 
@@ -274,7 +266,26 @@ SET search_path TO biblioteca, public;
 
 BEGIN;
 
-TRUNCATE stg_linea, stg_lector RESTART IDENTITY;
+-- Tablas de paso (staging): TEMPORALES. Existen solo en esta sesión y se borran
+-- solas al terminar la transacción (ON COMMIT DROP). No quedan en el esquema,
+-- no guardan datos personales entre cargas y dos cargas simultáneas no se pisan.
+CREATE TEMP TABLE stg_linea (
+    n      integer  GENERATED ALWAYS AS IDENTITY,
+    linea  text
+) ON COMMIT DROP;
+
+CREATE TEMP TABLE stg_lector (
+    linea_csv   integer,
+    contenido   text,
+    num_campos  integer,
+    documento   text,
+    nombres     text,
+    apellidos   text,
+    correo      text,
+    telefono    text,
+    motivo      text      -- NULL = la fila pasó la validación
+) ON COMMIT DROP;
+
 
 -- 1. Leer el archivo tal cual
 COPY stg_linea (linea) FROM '/scripts/datos/lectores_semilla.csv' WITH (FORMAT text);
@@ -332,7 +343,7 @@ WHERE motivo IS NULL
 INSERT INTO usuario (documento, nombres, apellidos, correo, telefono,
                      username, password, id_rol)
 SELECT s.documento, s.nombres, s.apellidos, s.correo, s.telefono,
-       s.documento, crypt(s.documento, gen_salt('bf')), r.id_rol
+       s.documento, crypt(s.documento, gen_salt('bf', 10)), r.id_rol
 FROM stg_lector s
 CROSS JOIN rol r
 WHERE s.motivo IS NULL
@@ -344,9 +355,7 @@ SELECT '/scripts/datos/lectores_semilla.csv', linea_csv, contenido, motivo
 FROM stg_lector
 WHERE motivo IS NOT NULL;
 
-COMMIT;
-
--- Resumen de la carga
+-- Resumen de la carga (antes del COMMIT: las tablas temporales desaparecen al confirmar)
 SELECT count(*) FILTER (WHERE motivo IS NULL)     AS cargadas,
        count(*) FILTER (WHERE motivo IS NOT NULL) AS rechazadas
 FROM stg_lector;
@@ -355,3 +364,5 @@ SELECT linea_csv AS linea, motivo, contenido
 FROM stg_lector
 WHERE motivo IS NOT NULL
 ORDER BY linea_csv;
+
+COMMIT;

@@ -1,0 +1,51 @@
+Salida real de psql — datos-prueba.sql + reportes.sql (ejecutado el 2026-10-28; las fechas son relativas a CURRENT_DATE).
+
+===== datos-prueba.sql
+ prestamos_de_prueba | abiertos 
+---------------------+----------
+                  28 |       19
+(1 row)
+
+===== reportes.sql
+     isbn      |               titulo                |         autores          | prestamos 
+---------------+-------------------------------------+--------------------------+-----------
+ 9780000000001 | Cien años de soledad                | Gabriel García Márquez   |         4
+ 9780000000004 | Rayuela                             | Julio Cortázar           |         3
+ 9780000000005 | Pedro Páramo                        | Juan Rulfo               |         2
+ 9780000000007 | Ficciones                           | Jorge Luis Borges        |         2
+ 9780000000018 | Matilda                             | Roald Dahl               |         1
+ 9780000000020 | Breve historia del tiempo           | Stephen Hawking          |         1
+ 9780000000003 | Crónica de una muerte anunciada     | Gabriel García Márquez   |         1
+ 9780000000016 | Fahrenheit 451                      | Ray Bradbury             |         1
+ 9780000000010 | La sombra del viento                | Carlos Ruiz Zafón        |         1
+ 9780000000006 | La casa de los espíritus            | Isabel Allende           |         1
+ 9780000000021 | Cosmos                              | Carl Sagan               |         1
+ 9780000000013 | Los detectives salvajes             | Roberto Bolaño           |         1
+ 9780000000002 | El amor en los tiempos del cólera   | Gabriel García Márquez   |         1
+ 9780000000015 | Un mundo feliz                      | Aldous Huxley            |         1
+ 9780000000012 | El túnel                            | Ernesto Sábato           |         1
+ 9780000000019 | Alicia en el país de las maravillas | Lewis Carroll            |         1
+ 9780000000022 | Sapiens: de animales a dioses       | Yuval Noah Harari        |         1
+ 9780000000017 | El principito                       | Antoine de Saint-Exupéry |         1
+ 9780000000011 | Como agua para chocolate            | Laura Esquivel           |         1
+ 9780000000009 | Don Quijote de la Mancha            | Miguel de Cervantes      |         1
+ 9780000000014 | 1984                                | George Orwell            |         1
+(21 rows)
+ documento  | nombres  |    apellidos    | libros_leidos 
+------------+----------+-----------------+---------------
+ 1000000001 | Mariana  | Gómez Rojas     |             3
+ 1000000002 | Santiago | Rodríguez Pérez |             3
+(2 rows)
+ documento  |  nombres   |    apellidos     
+------------+------------+------------------
+ 1000000005 | Camila     | Hernández Torres
+ 1000000003 | Valentina  | López Díaz
+ 1000000004 | Juan David | Martínez Ruiz
+(3 rows)
+          lector          |                 correo                 |  telefono  |        titulo        | fecha_vencimiento | dias_mora 
+--------------------------+----------------------------------------+------------+----------------------+-------------------+-----------
+ Juan David Martínez Ruiz | juan.martinez@correo-ejemplo.edu.co    | 3001000004 | Ficciones            | 2026-10-02        |        26
+ Valentina López Díaz     | valentina.lopez@correo-ejemplo.edu.co  | 3001000003 | La sombra del viento | 2026-10-12        |        16
+ Juan David Martínez Ruiz | juan.martinez@correo-ejemplo.edu.co    | 3001000004 | Cien años de soledad | 2026-10-22        |         6
+ Camila Hernández Torres  | camila.hernandez@correo-ejemplo.edu.co | 3001000005 | Pedro Páramo         | 2026-10-26        |         2
+(4 rows)

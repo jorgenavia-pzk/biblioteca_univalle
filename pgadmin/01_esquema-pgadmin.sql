@@ -84,8 +84,11 @@ CREATE TABLE prestamo (
 INSERT INTO rol (nombre) VALUES ('LECTOR'), ('BIBLIOTECARIO'), ('ADMINISTRADOR'), ('AUDITOR');
 
 -- =====================================================================
--- Carga desde CSV: bitácora y tablas de paso
+-- Bitácora de cargas desde CSV
 -- =====================================================================
+-- Las tablas de paso (staging) NO viven en el esquema: cada script de carga
+-- (postgres/scripts/carga-*.sql) crea las suyas como tablas TEMPORALES.
+-- Lo único que queda aquí es la bitácora, que sí es dato persistente.
 
 -- Bitácora de filas rechazadas: persiste entre cargas
 CREATE TABLE rechazo_carga (
@@ -95,35 +98,4 @@ CREATE TABLE rechazo_carga (
     contenido  text         NOT NULL,
     motivo     text         NOT NULL,
     fecha      timestamptz  NOT NULL DEFAULT now()
-);
-
--- Tablas de paso: todo texto, sin restricciones. Cada carga las vacía.
-CREATE TABLE stg_linea (
-    n      integer  GENERATED ALWAYS AS IDENTITY,
-    linea  text
-);
-
-CREATE TABLE stg_libro (
-    linea_csv               integer,
-    contenido               text,
-    num_campos              integer,
-    isbn                    text,
-    titulo                  text,
-    autor                   text,
-    categoria               text,
-    anio_publicacion        text,
-    ejemplares_disponibles  text,
-    motivo                  text      -- NULL = la fila pasó la validación
-);
-
-CREATE TABLE stg_lector (
-    linea_csv   integer,
-    contenido   text,
-    num_campos  integer,
-    documento   text,
-    nombres     text,
-    apellidos   text,
-    correo      text,
-    telefono    text,
-    motivo      text
 );

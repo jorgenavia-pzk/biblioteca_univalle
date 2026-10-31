@@ -1,4 +1,3 @@
--- VERSION PGADMIN (Query Tool). Para otro CSV, cambia la ruta en las 2 apariciones de '/scripts/datos/...csv' (Ctrl+H).
 -- carga-libros.sql — carga de libros desde CSV al esquema biblioteca
 -- Patrón: tabla de paso → validación → tablas finales → bitácora, en una transacción.
 --
@@ -13,15 +12,40 @@
 --   autor                          → autor (si no existe) + libro_autor
 --   ejemplares_disponibles = n     → n filas en ejemplar (copias 1..n, DISPONIBLE)
 
+\set ON_ERROR_STOP on
+\if :{?archivo}
+\else
+    \set archivo /scripts/datos/libros_semilla.csv
+\endif
 
 SET search_path TO biblioteca, public;
 
 BEGIN;
 
-TRUNCATE stg_linea, stg_libro RESTART IDENTITY;
+-- Tablas de paso (staging): TEMPORALES. Existen solo en esta sesión y se borran
+-- solas al terminar la transacción (ON COMMIT DROP). No quedan en el esquema,
+-- no guardan datos personales entre cargas y dos cargas simultáneas no se pisan.
+CREATE TEMP TABLE stg_linea (
+    n      integer  GENERATED ALWAYS AS IDENTITY,
+    linea  text
+) ON COMMIT DROP;
+
+CREATE TEMP TABLE stg_libro (
+    linea_csv               integer,
+    contenido               text,
+    num_campos              integer,
+    isbn                    text,
+    titulo                  text,
+    autor                   text,
+    categoria               text,
+    anio_publicacion        text,
+    ejemplares_disponibles  text,
+    motivo                  text      -- NULL = la fila pasó la validación
+) ON COMMIT DROP;
+
 
 -- 1. Leer el archivo tal cual: una fila por línea (FORMAT text no parte por comas)
-COPY stg_linea (linea) FROM '/scripts/datos/libros_semilla.csv' WITH (FORMAT text);
+COPY stg_linea (linea) FROM :'archivo' WITH (FORMAT text);
 DELETE FROM stg_linea WHERE n = 1;                                -- encabezado
 DELETE FROM stg_linea WHERE trim(linea) = '';                     -- líneas en blanco (p. ej. al final)
 
@@ -103,13 +127,11 @@ WHERE s.motivo IS NULL;
 
 -- 6. Rechazadas a la bitácora
 INSERT INTO rechazo_carga (archivo, linea, contenido, motivo)
-SELECT '/scripts/datos/libros_semilla.csv', linea_csv, contenido, motivo
+SELECT :'archivo', linea_csv, contenido, motivo
 FROM stg_libro
 WHERE motivo IS NOT NULL;
 
-COMMIT;
-
--- Resumen de la carga
+-- Resumen de la carga (antes del COMMIT: las tablas temporales desaparecen al confirmar)
 SELECT count(*) FILTER (WHERE motivo IS NULL)     AS cargadas,
        count(*) FILTER (WHERE motivo IS NOT NULL) AS rechazadas
 FROM stg_libro;
@@ -118,3 +140,5 @@ SELECT linea_csv AS linea, motivo, contenido
 FROM stg_libro
 WHERE motivo IS NOT NULL
 ORDER BY linea_csv;
+
+COMMIT;

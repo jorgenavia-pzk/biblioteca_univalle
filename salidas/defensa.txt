@@ -1,0 +1,33 @@
+Prueba de la última línea de defensa — CSV oficial libros_semilla_con_errores.csv, después de la carga limpia.
+
+===== A. Regla 'título vacío' comentada
+SET
+BEGIN
+CREATE TABLE
+CREATE TABLE
+COPY 9
+DELETE 1
+DELETE 0
+INSERT 0 8
+UPDATE 8
+UPDATE 0
+INSERT 0 0
+psql:/scripts/sin_titulo.sql:110: ERROR:  new row for relation "libro" violates check constraint "libro_titulo_check"
+DETAIL:  Failing row contains (33, 9780000000033, , Novela, 1963, t).
+libros en el catálogo: 32
+filas en la bitácora: 0
+
+===== B. Regla 'ejemplares negativo' comentada
+(1 row)
+ linea |              motivo              |                                          contenido                                          
+-------+----------------------------------+---------------------------------------------------------------------------------------------
+     2 | isbn ya existe en el catálogo    | 9780000000001,Cien años de soledad (edición duplicada),Gabriel García Márquez,Novela,1967,2
+     3 | título vacío                     | 9780000000033,,Julio Cortázar,Novela,1963,3
+     4 | año no numérico                  | 9780000000034,Relato sin ejemplares numéricos,Autor de Prueba,Novela,dos,3
+     5 | año no numérico                  | 9780000000035,Relato con año inválido,Autor de Prueba,Novela,MCMXLIX,2
+     6 | tiene 7 columnas, se esperaban 6 | 9780000000036,Relato con columna de más,Autor de Prueba,Novela,1999,2,columna_sobrante
+     7 | autor vacío                      | 9780000000037,Relato sin autor,,Novela,2005,1
+     8 | isbn vacío                       | ,Relato sin ISBN,Autor de Prueba,Novela,2010,1
+(7 rows)
+COMMIT
+libro -3 cargado: Relato con ejemplares negativos | copias: 0

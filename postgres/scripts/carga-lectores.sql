@@ -1,4 +1,3 @@
--- VERSION PGADMIN (Query Tool). Para otro CSV, cambia la ruta en las 2 apariciones de '/scripts/datos/...csv' (Ctrl+H).
 -- carga-lectores.sql — carga de lectores desde CSV al esquema biblioteca
 -- Cada lector es una fila de usuario con rol LECTOR.
 --
@@ -10,19 +9,43 @@
 --
 -- Columnas que el CSV no trae y cómo se provisionan:
 --   username   = documento
---   password   = crypt(documento, gen_salt('bf'))  → hash; se pide cambiarla al primer ingreso
+--   password   = crypt(documento, gen_salt('bf', 10))  → hash; se pide cambiarla al primer ingreso
 --   id_rol     = el de 'LECTOR'
 --   creado_por = NULL (carga inicial, no la creó un administrador)
 
+\set ON_ERROR_STOP on
+\if :{?archivo}
+\else
+    \set archivo /scripts/datos/lectores_semilla.csv
+\endif
 
 SET search_path TO biblioteca, public;
 
 BEGIN;
 
-TRUNCATE stg_linea, stg_lector RESTART IDENTITY;
+-- Tablas de paso (staging): TEMPORALES. Existen solo en esta sesión y se borran
+-- solas al terminar la transacción (ON COMMIT DROP). No quedan en el esquema,
+-- no guardan datos personales entre cargas y dos cargas simultáneas no se pisan.
+CREATE TEMP TABLE stg_linea (
+    n      integer  GENERATED ALWAYS AS IDENTITY,
+    linea  text
+) ON COMMIT DROP;
+
+CREATE TEMP TABLE stg_lector (
+    linea_csv   integer,
+    contenido   text,
+    num_campos  integer,
+    documento   text,
+    nombres     text,
+    apellidos   text,
+    correo      text,
+    telefono    text,
+    motivo      text      -- NULL = la fila pasó la validación
+) ON COMMIT DROP;
+
 
 -- 1. Leer el archivo tal cual
-COPY stg_linea (linea) FROM '/scripts/datos/lectores_semilla.csv' WITH (FORMAT text);
+COPY stg_linea (linea) FROM :'archivo' WITH (FORMAT text);
 DELETE FROM stg_linea WHERE n = 1;                                -- encabezado
 DELETE FROM stg_linea WHERE trim(linea) = '';                     -- líneas en blanco
 
@@ -77,7 +100,7 @@ WHERE motivo IS NULL
 INSERT INTO usuario (documento, nombres, apellidos, correo, telefono,
                      username, password, id_rol)
 SELECT s.documento, s.nombres, s.apellidos, s.correo, s.telefono,
-       s.documento, crypt(s.documento, gen_salt('bf')), r.id_rol
+       s.documento, crypt(s.documento, gen_salt('bf', 10)), r.id_rol
 FROM stg_lector s
 CROSS JOIN rol r
 WHERE s.motivo IS NULL
@@ -85,13 +108,11 @@ WHERE s.motivo IS NULL
 
 -- 6. Rechazadas a la bitácora
 INSERT INTO rechazo_carga (archivo, linea, contenido, motivo)
-SELECT '/scripts/datos/lectores_semilla.csv', linea_csv, contenido, motivo
+SELECT :'archivo', linea_csv, contenido, motivo
 FROM stg_lector
 WHERE motivo IS NOT NULL;
 
-COMMIT;
-
--- Resumen de la carga
+-- Resumen de la carga (antes del COMMIT: las tablas temporales desaparecen al confirmar)
 SELECT count(*) FILTER (WHERE motivo IS NULL)     AS cargadas,
        count(*) FILTER (WHERE motivo IS NOT NULL) AS rechazadas
 FROM stg_lector;
@@ -100,3 +121,5 @@ SELECT linea_csv AS linea, motivo, contenido
 FROM stg_lector
 WHERE motivo IS NOT NULL
 ORDER BY linea_csv;
+
+COMMIT;
