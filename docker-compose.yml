@@ -1,0 +1,32 @@
+# Contenedor PostgreSQL propio del proyecto biblioteca (independiente de entorno-docker).
+#
+#   Levantar:        docker compose up -d --wait    (espera a que el esquema termine de crearse)
+#   Ver el arranque: docker compose logs postgres
+#   Entrar a psql:   docker compose exec postgres psql -U curso -d curso
+#   Apagar:          docker compose down        (los datos se conservan)
+#   Empezar de cero: docker compose down -v     (BORRA solo los datos de ESTE proyecto)
+#
+# Conexión desde pgAdmin: host localhost, puerto 5433, base curso, usuario curso, contraseña la de abajo.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: biblioteca_pg
+    environment:
+      POSTGRES_USER: curso
+      POSTGRES_PASSWORD: curso      # solo se aplica la PRIMERA vez que se crea el volumen
+      POSTGRES_DB: curso
+    ports:
+      - "5433:5432"                 # 5433 afuera para no chocar con el contenedor de entorno-docker (5432)
+    volumes:
+      - biblioteca_pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro   # 01_esquema.sql corre solo, una vez, con la base vacía
+      - ./postgres/scripts:/scripts:ro                   # cargas, reportes y CSV (dentro del contenedor: /scripts)
+    healthcheck:                    # "listo" = terminó de crear el esquema y acepta conexiones por red
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U curso -d curso"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  biblioteca_pgdata:

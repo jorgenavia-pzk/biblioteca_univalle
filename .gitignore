@@ -1,0 +1,12 @@
+# Datos persistentes de PostgreSQL: estado local de cada integrante, no se versionan.
+# (Con el docker-compose.yml de este repo los datos van en un volumen de Docker y esta
+#  carpeta no existe; queda por si alguien monta ./postgres/data en vez del volumen.)
+postgres/data/*
+!postgres/data/.gitkeep
+
+# Variables de entorno locales (contraseñas o puertos personalizados)
+.env
+
+# Archivos del sistema operativo y del editor
+.DS_Store
+Thumbs.db
