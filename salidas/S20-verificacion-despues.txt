@@ -1,0 +1,66 @@
+SET
+--- V1. Cada libro tiene categoría y las categorías no se repiten (0 filas)
+ problema | dato 
+----------+------
+(0 rows)
+
+--- V2. Libros por categoría (las 9 de la semilla)
+    categoria    | libros 
+-----------------+--------
+ Novela          |     14
+ Ciencia         |      3
+ Ciencia Ficción |      3
+ Infantil        |      3
+ Cuento          |      2
+ Fantasía        |      2
+ Poesía          |      2
+ Terror          |      2
+ Historia        |      1
+(9 rows)
+
+--- V3. Ningún correo repetido ignorando mayúsculas (0 filas)
+ correo | count 
+--------+-------
+(0 rows)
+
+--- V4. Ninguna copia con dos préstamos abiertos (0 filas)
+ id_libro | numero_copia | abiertos 
+----------+--------------+----------
+(0 rows)
+
+--- V5. Situación de las copias: cada préstamo abierto es una copia PRESTADO (los dos números deben ser iguales)
+ prestamos_abiertos | copias_prestadas 
+--------------------+------------------
+                 19 |               19
+(1 row)
+
+ situacion  | copias 
+------------+--------
+ DISPONIBLE |     75
+ PRESTADO   |     19
+(2 rows)
+
+--- V6. Catálogo con disponibles calculados (los 5 libros con menos copias disponibles)
+     isbn      |             titulo              | categoria | total_copias | disponibles 
+---------------+---------------------------------+-----------+--------------+-------------
+ 9780000000020 | Breve historia del tiempo       | Ciencia   |            2 |           1
+ 9780000000021 | Cosmos                          | Ciencia   |            2 |           1
+ 9780000000003 | Crónica de una muerte anunciada | Novela    |            2 |           1
+ 9780000000023 | El origen de las especies       | Ciencia   |            1 |           1
+ 9780000000012 | El túnel                        | Novela    |            2 |           1
+(5 rows)
+
+--- V7. Prueba de que "disponibles" se actualiza solo: se presta la copia libre de un libro y se deshace
+BEGIN
+              titulo               | antes 
+-----------------------------------+-------
+ El amor en los tiempos del cólera |     2
+(1 row)
+
+INSERT 0 1
+              titulo               | despues 
+-----------------------------------+---------
+ El amor en los tiempos del cólera |       1
+(1 row)
+
+ROLLBACK

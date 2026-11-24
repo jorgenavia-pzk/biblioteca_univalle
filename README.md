@@ -59,7 +59,7 @@ docker compose up -d --wait
 
 **Verifica (1):** `docker ps` debe mostrar `biblioteca_pg` con estado `Up ... (healthy)`.
 
-**Verifica (2):** deben salir **8 tablas** (`autor`, `ejemplar`, `libro`, `libro_autor`, `prestamo`, `rechazo_carga`, `rol`, `usuario`):
+**Verifica (2):** deben salir **9 tablas** (`autor`, `categoria`, `ejemplar`, `libro`, `libro_autor`, `prestamo`, `rechazo_carga`, `rol`, `usuario`):
 
 ```powershell
 docker compose exec postgres psql -U curso -d curso -c "\dt biblioteca.*"
@@ -136,7 +136,7 @@ No cambies las demás pestañas. Pulsa **Save**.
 Servers
 ├── Curso - PostgreSQL          ← el del curso (no tocar)
 └── Biblioteca                  ← el tuyo
-    └── Databases → curso → Schemas → biblioteca → Tables   (8 tablas)
+    └── Databases → curso → Schemas → biblioteca → Tables   (9 tablas)
 ```
 
 Si no ves las tablas: clic derecho sobre **Schemas** → **Refresh**.
@@ -170,6 +170,14 @@ docker compose up -d --wait
 ```
 
 Y abre pgAdmin (http://localhost:5050).
+
+**Si tu base es de antes del Hito 3** (tiene `libro.categoria` y `ejemplar.estado`) y no quieres borrarla, migra sin perder datos, **una sola vez**:
+
+```powershell
+docker compose exec postgres psql -U curso -d curso -f /scripts/normalizacion.sql
+```
+
+Si ya la migraste, no la corras otra vez (falla y se deshace sola). Una base nueva no la necesita.
 
 **Si alguien cambió `postgres/init/01_esquema.sql`:** `init/` solo corre con la base vacía, así que reinicia **tu** base y vuelve a cargar (paso 3):
 
@@ -216,8 +224,9 @@ git push
 ```
 docker-compose.yml          contenedor PostgreSQL del proyecto (puerto 5433)
 ENTREGABLE.md               Hito 2: mapeo, criterios, pruebas y resultados
-postgres/init/              01_esquema.sql (se ejecuta solo con la base vacía)
-postgres/scripts/           cargas, datos de prueba, reportes
+entregas/S20/               Hito 3: NORMALIZACION.md (el documento), PARTE-A.md (mediciones), SQL de evidencia y verificación
+postgres/init/              01_esquema.sql (esquema normalizado; se ejecuta solo con la base vacía)
+postgres/scripts/           cargas, datos de prueba, reportes, normalizacion.sql (migración del Hito 3)
 postgres/scripts/datos/     CSV (semilla del curso y propios)
 pgadmin/                    versiones de los scripts para pegar en el Query Tool
 salidas/                    salidas reales de psql

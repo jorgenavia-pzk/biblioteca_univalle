@@ -40,7 +40,6 @@ ON CONFLICT (username) DO NOTHING;
 -- 2. Limpiar los préstamos de prueba anteriores (los registrados por el bibliotecario de prueba)
 DELETE FROM prestamo
 WHERE id_registra = (SELECT id_usuario FROM usuario WHERE username = 'bibliotecario');
-UPDATE ejemplar SET estado = 'DISPONIBLE' WHERE estado = 'PRESTADO';
 
 -- 3. Préstamos. p = días atrás del préstamo; d = días atrás de la devolución (NULL = sigue abierto).
 --    Siempre la copia 1 del libro (nunca dos préstamos abiertos de la misma copia).
@@ -87,11 +86,7 @@ JOIN libro   l   ON l.isbn = v.isbn
 JOIN usuario lec ON lec.documento = v.documento
 CROSS JOIN (SELECT id_usuario FROM usuario WHERE username = 'bibliotecario') AS bib;
 
--- 4. Las copias con préstamo abierto quedan marcadas como PRESTADO
-UPDATE ejemplar e SET estado = 'PRESTADO'
-FROM prestamo p
-WHERE p.id_libro = e.id_libro AND p.numero_copia = e.numero_copia
-  AND p.fecha_devolucion IS NULL;
+-- 4. Nada que marcar: desde el Hito 3 "prestado" no se guarda en ejemplar, se calcula (vista ejemplar_situacion)
 
 COMMIT;
 

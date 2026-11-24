@@ -1,0 +1,127 @@
+-- =====================================================================
+-- S20 · Hito 3 — Evidencia ANTES de normalizar (esquema biblioteca del Hito 2)
+-- Es la evidencia de la parte B de S19 (P1 a P10), más P11 (fecha_vencimiento).
+-- Requiere el esquema del Hito 2 (01_esquema.sql anterior) con libros, lectores y datos-prueba.sql cargados.
+-- Uso (desde la raíz del repo):
+--   docker compose exec -T -e PGCLIENTENCODING=UTF8 postgres psql -U curso -d curso < entregas/S20/evidencia-antes.sql
+-- Salida real en salidas/S20-evidencia-antes.txt.
+-- Las pruebas que insertan datos van dentro de una transacción y se deshacen.
+-- OJO: no corre sobre el esquema nuevo (usa libro.categoria y ejemplar.estado, que el Hito 3 reemplaza).
+-- =====================================================================
+
+SET search_path TO biblioteca, public;
+
+-- ---------------------------------------------------------------------
+-- usuario: claves candidatas protegidas con UNIQUE
+-- ---------------------------------------------------------------------
+
+-- P1. Documento, correo y username no se repiten (0 filas en cada una)
+SELECT 'documento' AS clave, documento AS valor, count(*) FROM usuario GROUP BY documento HAVING count(*) > 1
+UNION ALL
+SELECT 'correo', correo, count(*) FROM usuario GROUP BY correo HAVING count(*) > 1
+UNION ALL
+SELECT 'username', username, count(*) FROM usuario GROUP BY username HAVING count(*) > 1;
+
+-- P2. Problema: el UNIQUE del correo distingue mayúsculas. La carga CSV pasa
+--     el correo a minúsculas, pero un INSERT directo puede meter el mismo
+--     correo con otra mayúscula. Resultado: el INSERT entra (no debería).
+BEGIN;
+INSERT INTO usuario (documento, nombres, apellidos, correo, username, password, id_rol)
+SELECT '99999999', 'Prueba', 'Mayúsculas', upper(correo), 'prueba_mayus', 'x', id_rol
+FROM usuario ORDER BY id_usuario LIMIT 1;
+SELECT lower(correo) AS correo, count(*) AS usuarios_con_ese_correo
+FROM usuario GROUP BY lower(correo) HAVING count(*) > 1;
+ROLLBACK;
+
+-- ---------------------------------------------------------------------
+-- libro: categoría como texto libre
+-- ---------------------------------------------------------------------
+
+-- P3. La categoría se repite como texto en muchas filas
+SELECT categoria, count(*) AS libros
+FROM libro GROUP BY categoria ORDER BY libros DESC;
+
+-- P4. Problema: nada impide escribir la misma categoría de dos formas.
+--     Resultado: 'Novela' y 'novela ' quedan como dos categorías distintas.
+BEGIN;
+INSERT INTO libro (isbn, titulo, categoria, anio_publicacion)
+VALUES ('9789999999999', 'Libro de prueba', 'novela ', 2020);
+SELECT lower(trim(categoria)) AS categoria_normalizada,
+       count(DISTINCT categoria) AS formas_distintas,
+       array_agg(DISTINCT categoria) AS como_esta_escrita
+FROM libro GROUP BY lower(trim(categoria)) HAVING count(DISTINCT categoria) > 1;
+ROLLBACK;
+
+-- P5. ISBN protegido con UNIQUE (0 filas)
+SELECT isbn, count(*) FROM libro GROUP BY isbn HAVING count(*) > 1;
+
+-- ---------------------------------------------------------------------
+-- autor y libro_autor
+-- ---------------------------------------------------------------------
+
+-- P6. Ningún autor repetido y ningún libro sin autor (0 filas en cada una)
+SELECT 'autor repetido' AS problema, nombre AS dato FROM autor GROUP BY nombre HAVING count(*) > 1
+UNION ALL
+SELECT 'libro sin autor', l.isbn FROM libro l
+WHERE NOT EXISTS (SELECT 1 FROM libro_autor la WHERE la.id_libro = l.id_libro);
+
+-- ---------------------------------------------------------------------
+-- ejemplar: ejemplares disponibles es derivado (no se guarda)
+-- ---------------------------------------------------------------------
+
+-- P7. Los disponibles se calculan contando copias, no se guardan
+SELECT l.titulo, count(*) FILTER (WHERE e.estado = 'DISPONIBLE') AS disponibles,
+       count(e.numero_copia) AS total_copias
+FROM libro l LEFT JOIN ejemplar e USING (id_libro)
+GROUP BY l.titulo ORDER BY l.titulo LIMIT 5;
+
+-- ---------------------------------------------------------------------
+-- ejemplar.estado frente a prestamo, y préstamos activos duplicados
+-- ---------------------------------------------------------------------
+-- Se crean un bibliotecario y dos préstamos de prueba de la copia 2 del libro 1 (que está libre), y se deshace todo.
+BEGIN;
+INSERT INTO usuario (documento, nombres, apellidos, correo, username, password, id_rol)
+SELECT '88888888', 'Biblio', 'Prueba', 'biblio@prueba.co', 'biblio', 'x', id_rol
+FROM rol WHERE nombre = 'BIBLIOTECARIO';
+
+-- Préstamo 1 normal; préstamo 2 de LA MISMA COPIA, también activo
+INSERT INTO prestamo (id_lector, id_libro, numero_copia, id_registra, fecha_prestamo, fecha_vencimiento)
+SELECT (SELECT min(id_usuario) FROM usuario u JOIN rol r USING (id_rol) WHERE r.nombre = 'LECTOR'),
+       1, 2,
+       (SELECT id_usuario FROM usuario WHERE username = 'biblio'),
+       current_date - 5, current_date + 10
+FROM generate_series(1, 2);
+
+-- P8. Problema: una misma copia con dos préstamos activos a la vez
+--     Resultado: id_libro 1, copia 2, 2 préstamos activos (el esquema lo permitió)
+SELECT id_libro, numero_copia, count(*) AS prestamos_activos
+FROM prestamo
+WHERE fecha_devolucion IS NULL
+GROUP BY id_libro, numero_copia HAVING count(*) > 1;
+
+-- P9. Problema: ejemplar.estado contradice a prestamo
+--     Resultado: la copia 2 del libro 1 está prestada (según prestamo), pero su estado guardado dice DISPONIBLE
+SELECT e.id_libro, e.numero_copia, e.estado AS estado_guardado,
+       CASE WHEN EXISTS (SELECT 1 FROM prestamo p
+                         WHERE p.id_libro = e.id_libro AND p.numero_copia = e.numero_copia
+                           AND p.fecha_devolucion IS NULL)
+            THEN 'PRESTADO' ELSE 'NO PRESTADO' END AS segun_prestamos
+FROM ejemplar e
+WHERE (e.estado = 'PRESTADO') <> EXISTS (SELECT 1 FROM prestamo p
+                                         WHERE p.id_libro = e.id_libro AND p.numero_copia = e.numero_copia
+                                           AND p.fecha_devolucion IS NULL);
+
+-- P10. Datos del lector NO copiados en prestamo: solo FK (columnas de prestamo)
+SELECT column_name FROM information_schema.columns
+WHERE table_schema = 'biblioteca' AND table_name = 'prestamo'
+ORDER BY ordinal_position;
+ROLLBACK;
+
+-- ---------------------------------------------------------------------
+-- prestamo.fecha_vencimiento: ¿derivada o histórica? (S20, A5)
+-- ---------------------------------------------------------------------
+-- P11. Con el plazo por defecto de 14 días todas coinciden con fecha_prestamo + 14 (0 filas distintas),
+--      pero la regla 3.2 dice que cada equipo puede cambiar el plazo: por eso se conserva (dato histórico).
+SELECT count(*) AS prestamos,
+       count(*) FILTER (WHERE fecha_vencimiento <> fecha_prestamo + 14) AS distintas_de_14_dias
+FROM prestamo;

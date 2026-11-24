@@ -1,0 +1,500 @@
+psql:/scripts/S20-rendimiento.sql:15: NOTICE:  drop cascades to 6 other objects
+DETAIL:  drop cascades to table rendimiento.libro
+drop cascades to table rendimiento.ejemplar
+drop cascades to table rendimiento.lector
+drop cascades to table rendimiento.prestamo
+drop cascades to view rendimiento.descuadre
+drop cascades to materialized view rendimiento.top_prestados
+DROP SCHEMA
+CREATE SCHEMA
+SET
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+INSERT 0 5000
+INSERT 0 15000
+INSERT 0 2000
+INSERT 0 300000
+INSERT 0 3750
+ANALYZE
+ libros | ejemplares | lectores | prestamos | abiertos 
+--------+------------+----------+-----------+----------
+   5000 |      15000 |     2000 |    303750 |     3750
+(1 row)
+
+SET
+=================== A1. Consulta del catálogo, sin índices (solo PK) ===================
+--- A1 catálogo SIN índices (corrida 1 de 3)
+                                                                 QUERY PLAN                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=5699.19..5703.48 rows=101 width=32) (actual time=16.127..16.184 rows=111 loops=1)
+   Group Key: l.isbn
+   ->  Sort  (cost=5699.19..5699.95 rows=303 width=32) (actual time=16.119..16.133 rows=333 loops=1)
+         Sort Key: l.isbn
+         Sort Method: quicksort  Memory: 43kB
+         ->  Hash Right Join  (cost=400.96..5686.70 rows=303 width=32) (actual time=15.325..15.780 rows=333 loops=1)
+               Hash Cond: (p.id_ejemplar = e.id_ejemplar)
+               ->  Seq Scan on prestamo p  (cost=0.00..5271.50 rows=3604 width=8) (actual time=13.210..13.456 rows=3750 loops=1)
+                     Filter: (fecha_devolucion IS NULL)
+                     Rows Removed by Filter: 300000
+               ->  Hash  (cost=397.17..397.17 rows=303 width=28) (actual time=2.104..2.107 rows=333 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 29kB
+                     ->  Hash Join  (cost=111.76..397.17 rows=303 width=28) (actual time=0.403..2.072 rows=333 loops=1)
+                           Hash Cond: (e.isbn = l.isbn)
+                           ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.004..0.743 rows=15000 loops=1)
+                           ->  Hash  (cost=110.50..110.50 rows=101 width=24) (actual time=0.394..0.395 rows=111 loops=1)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 15kB
+                                 ->  Seq Scan on libro l  (cost=0.00..110.50 rows=101 width=24) (actual time=0.004..0.380 rows=111 loops=1)
+                                       Filter: ((titulo)::text ~~ 'Libro 12%'::text)
+                                       Rows Removed by Filter: 4889
+ Planning Time: 0.404 ms
+ Execution Time: 16.215 ms
+(22 rows)
+
+--- A1 catálogo SIN índices (corrida 2 de 3)
+                                                                 QUERY PLAN                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=5699.19..5703.48 rows=101 width=32) (actual time=15.882..15.939 rows=111 loops=1)
+   Group Key: l.isbn
+   ->  Sort  (cost=5699.19..5699.95 rows=303 width=32) (actual time=15.874..15.888 rows=333 loops=1)
+         Sort Key: l.isbn
+         Sort Method: quicksort  Memory: 43kB
+         ->  Hash Right Join  (cost=400.96..5686.70 rows=303 width=32) (actual time=15.085..15.540 rows=333 loops=1)
+               Hash Cond: (p.id_ejemplar = e.id_ejemplar)
+               ->  Seq Scan on prestamo p  (cost=0.00..5271.50 rows=3604 width=8) (actual time=13.059..13.307 rows=3750 loops=1)
+                     Filter: (fecha_devolucion IS NULL)
+                     Rows Removed by Filter: 300000
+               ->  Hash  (cost=397.17..397.17 rows=303 width=28) (actual time=2.015..2.018 rows=333 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 29kB
+                     ->  Hash Join  (cost=111.76..397.17 rows=303 width=28) (actual time=0.425..1.986 rows=333 loops=1)
+                           Hash Cond: (e.isbn = l.isbn)
+                           ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.005..0.673 rows=15000 loops=1)
+                           ->  Hash  (cost=110.50..110.50 rows=101 width=24) (actual time=0.415..0.416 rows=111 loops=1)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 15kB
+                                 ->  Seq Scan on libro l  (cost=0.00..110.50 rows=101 width=24) (actual time=0.004..0.401 rows=111 loops=1)
+                                       Filter: ((titulo)::text ~~ 'Libro 12%'::text)
+                                       Rows Removed by Filter: 4889
+ Planning Time: 0.300 ms
+ Execution Time: 15.971 ms
+(22 rows)
+
+--- A1 catálogo SIN índices (corrida 3 de 3)
+                                                                 QUERY PLAN                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=5699.19..5703.48 rows=101 width=32) (actual time=16.125..16.181 rows=111 loops=1)
+   Group Key: l.isbn
+   ->  Sort  (cost=5699.19..5699.95 rows=303 width=32) (actual time=16.117..16.130 rows=333 loops=1)
+         Sort Key: l.isbn
+         Sort Method: quicksort  Memory: 43kB
+         ->  Hash Right Join  (cost=400.96..5686.70 rows=303 width=32) (actual time=15.333..15.786 rows=333 loops=1)
+               Hash Cond: (p.id_ejemplar = e.id_ejemplar)
+               ->  Seq Scan on prestamo p  (cost=0.00..5271.50 rows=3604 width=8) (actual time=13.415..13.660 rows=3750 loops=1)
+                     Filter: (fecha_devolucion IS NULL)
+                     Rows Removed by Filter: 300000
+               ->  Hash  (cost=397.17..397.17 rows=303 width=28) (actual time=1.906..1.909 rows=333 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 29kB
+                     ->  Hash Join  (cost=111.76..397.17 rows=303 width=28) (actual time=0.322..1.879 rows=333 loops=1)
+                           Hash Cond: (e.isbn = l.isbn)
+                           ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.005..0.719 rows=15000 loops=1)
+                           ->  Hash  (cost=110.50..110.50 rows=101 width=24) (actual time=0.312..0.313 rows=111 loops=1)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 15kB
+                                 ->  Seq Scan on libro l  (cost=0.00..110.50 rows=101 width=24) (actual time=0.004..0.301 rows=111 loops=1)
+                                       Filter: ((titulo)::text ~~ 'Libro 12%'::text)
+                                       Rows Removed by Filter: 4889
+ Planning Time: 0.318 ms
+ Execution Time: 16.213 ms
+(22 rows)
+
+=================== A4(a). Reporte 1 (top 20 más prestados), sin índices ===================
+--- A4a top 20 SIN índices (corrida 1 de 3)
+                                                                             QUERY PLAN                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=8204.78..8204.83 rows=20 width=32) (actual time=79.733..79.810 rows=20 loops=1)
+   ->  Sort  (cost=8204.78..8217.28 rows=5000 width=32) (actual time=79.731..79.806 rows=21 loops=1)
+         Sort Key: (count(*)) DESC
+         Sort Method: quicksort  Memory: 497kB
+         ->  Finalize HashAggregate  (cost=8021.73..8071.73 rows=5000 width=32) (actual time=78.646..79.078 rows=5000 loops=1)
+               Group Key: l.isbn
+               Batches: 1  Memory Usage: 721kB
+               ->  Gather  (cost=7446.73..7996.73 rows=5000 width=32) (actual time=75.912..77.015 rows=10000 loops=1)
+                     Workers Planned: 1
+                     Workers Launched: 1
+                     ->  Partial HashAggregate  (cost=6446.73..6496.73 rows=5000 width=32) (actual time=74.191..74.607 rows=5000 loops=2)
+                           Group Key: l.isbn
+                           Batches: 1  Memory Usage: 721kB
+                           Worker 0:  Batches: 1  Memory Usage: 721kB
+                           ->  Hash Join  (cost=594.00..5553.35 rows=178676 width=24) (actual time=3.270..55.453 rows=151875 loops=2)
+                                 Hash Cond: (e.isbn = l.isbn)
+                                 ->  Hash Join  (cost=433.50..4923.42 rows=178676 width=14) (actual time=2.151..31.587 rows=151875 loops=2)
+                                       Hash Cond: (p.id_ejemplar = e.id_ejemplar)
+                                       ->  Parallel Seq Scan on prestamo p  (cost=0.00..4020.76 rows=178676 width=4) (actual time=0.005..7.928 rows=151875 loops=2)
+                                       ->  Hash  (cost=246.00..246.00 rows=15000 width=18) (actual time=2.090..2.091 rows=15000 loops=2)
+                                             Buckets: 16384  Batches: 1  Memory Usage: 861kB
+                                             ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.007..0.746 rows=15000 loops=2)
+                                 ->  Hash  (cost=98.00..98.00 rows=5000 width=24) (actual time=1.091..1.092 rows=5000 loops=2)
+                                       Buckets: 8192  Batches: 1  Memory Usage: 342kB
+                                       ->  Seq Scan on libro l  (cost=0.00..98.00 rows=5000 width=24) (actual time=0.008..0.436 rows=5000 loops=2)
+ Planning Time: 0.311 ms
+ Execution Time: 79.890 ms
+(27 rows)
+
+--- A4a top 20 SIN índices (corrida 2 de 3)
+                                                                             QUERY PLAN                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=8204.78..8204.83 rows=20 width=32) (actual time=78.284..78.564 rows=20 loops=1)
+   ->  Sort  (cost=8204.78..8217.28 rows=5000 width=32) (actual time=78.283..78.559 rows=21 loops=1)
+         Sort Key: (count(*)) DESC
+         Sort Method: quicksort  Memory: 497kB
+         ->  Finalize HashAggregate  (cost=8021.73..8071.73 rows=5000 width=32) (actual time=77.409..78.065 rows=5000 loops=1)
+               Group Key: l.isbn
+               Batches: 1  Memory Usage: 721kB
+               ->  Gather  (cost=7446.73..7996.73 rows=5000 width=32) (actual time=74.453..75.904 rows=10000 loops=1)
+                     Workers Planned: 1
+                     Workers Launched: 1
+                     ->  Partial HashAggregate  (cost=6446.73..6496.73 rows=5000 width=32) (actual time=72.906..73.386 rows=5000 loops=2)
+                           Group Key: l.isbn
+                           Batches: 1  Memory Usage: 721kB
+                           Worker 0:  Batches: 1  Memory Usage: 721kB
+                           ->  Hash Join  (cost=594.00..5553.35 rows=178676 width=24) (actual time=2.819..54.445 rows=151875 loops=2)
+                                 Hash Cond: (e.isbn = l.isbn)
+                                 ->  Hash Join  (cost=433.50..4923.42 rows=178676 width=14) (actual time=1.843..30.975 rows=151875 loops=2)
+                                       Hash Cond: (p.id_ejemplar = e.id_ejemplar)
+                                       ->  Parallel Seq Scan on prestamo p  (cost=0.00..4020.76 rows=178676 width=4) (actual time=0.005..7.940 rows=151875 loops=2)
+                                       ->  Hash  (cost=246.00..246.00 rows=15000 width=18) (actual time=1.788..1.789 rows=15000 loops=2)
+                                             Buckets: 16384  Batches: 1  Memory Usage: 861kB
+                                             ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.006..0.716 rows=15000 loops=2)
+                                 ->  Hash  (cost=98.00..98.00 rows=5000 width=24) (actual time=0.951..0.951 rows=5000 loops=2)
+                                       Buckets: 8192  Batches: 1  Memory Usage: 342kB
+                                       ->  Seq Scan on libro l  (cost=0.00..98.00 rows=5000 width=24) (actual time=0.010..0.402 rows=5000 loops=2)
+ Planning Time: 0.344 ms
+ Execution Time: 78.633 ms
+(27 rows)
+
+--- A4a top 20 SIN índices (corrida 3 de 3)
+                                                                             QUERY PLAN                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=8204.78..8204.83 rows=20 width=32) (actual time=78.008..78.167 rows=20 loops=1)
+   ->  Sort  (cost=8204.78..8217.28 rows=5000 width=32) (actual time=78.007..78.163 rows=21 loops=1)
+         Sort Key: (count(*)) DESC
+         Sort Method: quicksort  Memory: 497kB
+         ->  Finalize HashAggregate  (cost=8021.73..8071.73 rows=5000 width=32) (actual time=77.177..77.684 rows=5000 loops=1)
+               Group Key: l.isbn
+               Batches: 1  Memory Usage: 721kB
+               ->  Gather  (cost=7446.73..7996.73 rows=5000 width=32) (actual time=74.863..75.931 rows=10000 loops=1)
+                     Workers Planned: 1
+                     Workers Launched: 1
+                     ->  Partial HashAggregate  (cost=6446.73..6496.73 rows=5000 width=32) (actual time=73.317..73.678 rows=5000 loops=2)
+                           Group Key: l.isbn
+                           Batches: 1  Memory Usage: 721kB
+                           Worker 0:  Batches: 1  Memory Usage: 721kB
+                           ->  Hash Join  (cost=594.00..5553.35 rows=178676 width=24) (actual time=2.745..54.767 rows=151875 loops=2)
+                                 Hash Cond: (e.isbn = l.isbn)
+                                 ->  Hash Join  (cost=433.50..4923.42 rows=178676 width=14) (actual time=1.814..31.230 rows=151875 loops=2)
+                                       Hash Cond: (p.id_ejemplar = e.id_ejemplar)
+                                       ->  Parallel Seq Scan on prestamo p  (cost=0.00..4020.76 rows=178676 width=4) (actual time=0.005..7.941 rows=151875 loops=2)
+                                       ->  Hash  (cost=246.00..246.00 rows=15000 width=18) (actual time=1.758..1.758 rows=15000 loops=2)
+                                             Buckets: 16384  Batches: 1  Memory Usage: 861kB
+                                             ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.006..0.695 rows=15000 loops=2)
+                                 ->  Hash  (cost=98.00..98.00 rows=5000 width=24) (actual time=0.903..0.904 rows=5000 loops=2)
+                                       Buckets: 8192  Batches: 1  Memory Usage: 342kB
+                                       ->  Seq Scan on libro l  (cost=0.00..98.00 rows=5000 width=24) (actual time=0.009..0.365 rows=5000 loops=2)
+ Planning Time: 0.341 ms
+ Execution Time: 78.239 ms
+(27 rows)
+
+=================== A2. Índices ===================
+CREATE INDEX
+CREATE INDEX
+ANALYZE
+--- A2 catálogo CON índices (corrida 1 de 3)
+                                                                  QUERY PLAN                                                                   
+-----------------------------------------------------------------------------------------------------------------------------------------------
+ HashAggregate  (cost=674.17..675.44 rows=101 width=32) (actual time=2.266..2.276 rows=111 loops=1)
+   Group Key: l.isbn
+   Batches: 1  Memory Usage: 32kB
+   ->  Nested Loop Left Join  (cost=112.04..671.90 rows=303 width=32) (actual time=0.387..2.206 rows=333 loops=1)
+         ->  Hash Join  (cost=111.76..397.17 rows=303 width=28) (actual time=0.372..1.954 rows=333 loops=1)
+               Hash Cond: (e.isbn = l.isbn)
+               ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.005..0.700 rows=15000 loops=1)
+               ->  Hash  (cost=110.50..110.50 rows=101 width=24) (actual time=0.360..0.360 rows=111 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 15kB
+                     ->  Seq Scan on libro l  (cost=0.00..110.50 rows=101 width=24) (actual time=0.006..0.346 rows=111 loops=1)
+                           Filter: ((titulo)::text ~~ 'Libro 12%'::text)
+                           Rows Removed by Filter: 4889
+         ->  Index Scan using prestamo_abierto_idx on prestamo p  (cost=0.28..0.90 rows=1 width=8) (actual time=0.001..0.001 rows=0 loops=333)
+               Index Cond: (id_ejemplar = e.id_ejemplar)
+ Planning Time: 0.486 ms
+ Execution Time: 2.311 ms
+(16 rows)
+
+--- A2 catálogo CON índices (corrida 2 de 3)
+                                                                  QUERY PLAN                                                                   
+-----------------------------------------------------------------------------------------------------------------------------------------------
+ HashAggregate  (cost=674.17..675.44 rows=101 width=32) (actual time=2.046..2.054 rows=111 loops=1)
+   Group Key: l.isbn
+   Batches: 1  Memory Usage: 32kB
+   ->  Nested Loop Left Join  (cost=112.04..671.90 rows=303 width=32) (actual time=0.294..1.989 rows=333 loops=1)
+         ->  Hash Join  (cost=111.76..397.17 rows=303 width=28) (actual time=0.291..1.762 rows=333 loops=1)
+               Hash Cond: (e.isbn = l.isbn)
+               ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.003..0.632 rows=15000 loops=1)
+               ->  Hash  (cost=110.50..110.50 rows=101 width=24) (actual time=0.284..0.284 rows=111 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 15kB
+                     ->  Seq Scan on libro l  (cost=0.00..110.50 rows=101 width=24) (actual time=0.003..0.274 rows=111 loops=1)
+                           Filter: ((titulo)::text ~~ 'Libro 12%'::text)
+                           Rows Removed by Filter: 4889
+         ->  Index Scan using prestamo_abierto_idx on prestamo p  (cost=0.28..0.90 rows=1 width=8) (actual time=0.000..0.001 rows=0 loops=333)
+               Index Cond: (id_ejemplar = e.id_ejemplar)
+ Planning Time: 0.215 ms
+ Execution Time: 2.073 ms
+(16 rows)
+
+--- A2 catálogo CON índices (corrida 3 de 3)
+                                                                  QUERY PLAN                                                                   
+-----------------------------------------------------------------------------------------------------------------------------------------------
+ HashAggregate  (cost=674.17..675.44 rows=101 width=32) (actual time=2.339..2.348 rows=111 loops=1)
+   Group Key: l.isbn
+   Batches: 1  Memory Usage: 32kB
+   ->  Nested Loop Left Join  (cost=112.04..671.90 rows=303 width=32) (actual time=0.421..2.279 rows=333 loops=1)
+         ->  Hash Join  (cost=111.76..397.17 rows=303 width=28) (actual time=0.417..2.003 rows=333 loops=1)
+               Hash Cond: (e.isbn = l.isbn)
+               ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.004..0.680 rows=15000 loops=1)
+               ->  Hash  (cost=110.50..110.50 rows=101 width=24) (actual time=0.409..0.409 rows=111 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 15kB
+                     ->  Seq Scan on libro l  (cost=0.00..110.50 rows=101 width=24) (actual time=0.004..0.396 rows=111 loops=1)
+                           Filter: ((titulo)::text ~~ 'Libro 12%'::text)
+                           Rows Removed by Filter: 4889
+         ->  Index Scan using prestamo_abierto_idx on prestamo p  (cost=0.28..0.90 rows=1 width=8) (actual time=0.001..0.001 rows=0 loops=333)
+               Index Cond: (id_ejemplar = e.id_ejemplar)
+ Planning Time: 0.266 ms
+ Execution Time: 2.369 ms
+(16 rows)
+
+--- A2 (extra): el top 20 con los índices puestos; no deberían ayudarle, agrega TODOS los préstamos
+--- A2 extra top 20 CON índices (corrida 1 de 3)
+                                                                             QUERY PLAN                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=8204.78..8204.83 rows=20 width=32) (actual time=79.083..79.154 rows=20 loops=1)
+   ->  Sort  (cost=8204.78..8217.28 rows=5000 width=32) (actual time=79.082..79.149 rows=21 loops=1)
+         Sort Key: (count(*)) DESC
+         Sort Method: quicksort  Memory: 497kB
+         ->  Finalize HashAggregate  (cost=8021.73..8071.73 rows=5000 width=32) (actual time=77.996..78.418 rows=5000 loops=1)
+               Group Key: l.isbn
+               Batches: 1  Memory Usage: 721kB
+               ->  Gather  (cost=7446.73..7996.73 rows=5000 width=32) (actual time=75.244..76.329 rows=10000 loops=1)
+                     Workers Planned: 1
+                     Workers Launched: 1
+                     ->  Partial HashAggregate  (cost=6446.73..6496.73 rows=5000 width=32) (actual time=72.851..73.252 rows=5000 loops=2)
+                           Group Key: l.isbn
+                           Batches: 1  Memory Usage: 721kB
+                           Worker 0:  Batches: 1  Memory Usage: 721kB
+                           ->  Hash Join  (cost=594.00..5553.35 rows=178676 width=24) (actual time=2.883..54.253 rows=151875 loops=2)
+                                 Hash Cond: (e.isbn = l.isbn)
+                                 ->  Hash Join  (cost=433.50..4923.42 rows=178676 width=14) (actual time=1.924..30.835 rows=151875 loops=2)
+                                       Hash Cond: (p.id_ejemplar = e.id_ejemplar)
+                                       ->  Parallel Seq Scan on prestamo p  (cost=0.00..4020.76 rows=178676 width=4) (actual time=0.006..7.866 rows=151875 loops=2)
+                                       ->  Hash  (cost=246.00..246.00 rows=15000 width=18) (actual time=1.862..1.862 rows=15000 loops=2)
+                                             Buckets: 16384  Batches: 1  Memory Usage: 861kB
+                                             ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.007..0.716 rows=15000 loops=2)
+                                 ->  Hash  (cost=98.00..98.00 rows=5000 width=24) (actual time=0.935..0.936 rows=5000 loops=2)
+                                       Buckets: 8192  Batches: 1  Memory Usage: 342kB
+                                       ->  Seq Scan on libro l  (cost=0.00..98.00 rows=5000 width=24) (actual time=0.009..0.380 rows=5000 loops=2)
+ Planning Time: 0.197 ms
+ Execution Time: 79.216 ms
+(27 rows)
+
+--- A2 extra top 20 CON índices (corrida 2 de 3)
+                                                                             QUERY PLAN                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=8204.78..8204.83 rows=20 width=32) (actual time=77.677..77.756 rows=20 loops=1)
+   ->  Sort  (cost=8204.78..8217.28 rows=5000 width=32) (actual time=77.676..77.751 rows=21 loops=1)
+         Sort Key: (count(*)) DESC
+         Sort Method: quicksort  Memory: 497kB
+         ->  Finalize HashAggregate  (cost=8021.73..8071.73 rows=5000 width=32) (actual time=76.804..77.235 rows=5000 loops=1)
+               Group Key: l.isbn
+               Batches: 1  Memory Usage: 721kB
+               ->  Gather  (cost=7446.73..7996.73 rows=5000 width=32) (actual time=73.757..75.157 rows=10000 loops=1)
+                     Workers Planned: 1
+                     Workers Launched: 1
+                     ->  Partial HashAggregate  (cost=6446.73..6496.73 rows=5000 width=32) (actual time=72.220..72.846 rows=5000 loops=2)
+                           Group Key: l.isbn
+                           Batches: 1  Memory Usage: 721kB
+                           Worker 0:  Batches: 1  Memory Usage: 721kB
+                           ->  Hash Join  (cost=594.00..5553.35 rows=178676 width=24) (actual time=2.701..53.781 rows=151875 loops=2)
+                                 Hash Cond: (e.isbn = l.isbn)
+                                 ->  Hash Join  (cost=433.50..4923.42 rows=178676 width=14) (actual time=1.846..30.610 rows=151875 loops=2)
+                                       Hash Cond: (p.id_ejemplar = e.id_ejemplar)
+                                       ->  Parallel Seq Scan on prestamo p  (cost=0.00..4020.76 rows=178676 width=4) (actual time=0.004..7.798 rows=151875 loops=2)
+                                       ->  Hash  (cost=246.00..246.00 rows=15000 width=18) (actual time=1.788..1.789 rows=15000 loops=2)
+                                             Buckets: 16384  Batches: 1  Memory Usage: 861kB
+                                             ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.007..0.707 rows=15000 loops=2)
+                                 ->  Hash  (cost=98.00..98.00 rows=5000 width=24) (actual time=0.829..0.830 rows=5000 loops=2)
+                                       Buckets: 8192  Batches: 1  Memory Usage: 342kB
+                                       ->  Seq Scan on libro l  (cost=0.00..98.00 rows=5000 width=24) (actual time=0.008..0.341 rows=5000 loops=2)
+ Planning Time: 0.371 ms
+ Execution Time: 77.822 ms
+(27 rows)
+
+--- A2 extra top 20 CON índices (corrida 3 de 3)
+                                                                             QUERY PLAN                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=8204.78..8204.83 rows=20 width=32) (actual time=77.244..77.391 rows=20 loops=1)
+   ->  Sort  (cost=8204.78..8217.28 rows=5000 width=32) (actual time=77.243..77.386 rows=21 loops=1)
+         Sort Key: (count(*)) DESC
+         Sort Method: quicksort  Memory: 497kB
+         ->  Finalize HashAggregate  (cost=8021.73..8071.73 rows=5000 width=32) (actual time=76.404..76.904 rows=5000 loops=1)
+               Group Key: l.isbn
+               Batches: 1  Memory Usage: 721kB
+               ->  Gather  (cost=7446.73..7996.73 rows=5000 width=32) (actual time=74.059..75.125 rows=10000 loops=1)
+                     Workers Planned: 1
+                     Workers Launched: 1
+                     ->  Partial HashAggregate  (cost=6446.73..6496.73 rows=5000 width=32) (actual time=72.539..72.899 rows=5000 loops=2)
+                           Group Key: l.isbn
+                           Batches: 1  Memory Usage: 721kB
+                           Worker 0:  Batches: 1  Memory Usage: 721kB
+                           ->  Hash Join  (cost=594.00..5553.35 rows=178676 width=24) (actual time=2.703..54.237 rows=151875 loops=2)
+                                 Hash Cond: (e.isbn = l.isbn)
+                                 ->  Hash Join  (cost=433.50..4923.42 rows=178676 width=14) (actual time=1.812..30.922 rows=151875 loops=2)
+                                       Hash Cond: (p.id_ejemplar = e.id_ejemplar)
+                                       ->  Parallel Seq Scan on prestamo p  (cost=0.00..4020.76 rows=178676 width=4) (actual time=0.004..7.878 rows=151875 loops=2)
+                                       ->  Hash  (cost=246.00..246.00 rows=15000 width=18) (actual time=1.757..1.757 rows=15000 loops=2)
+                                             Buckets: 16384  Batches: 1  Memory Usage: 861kB
+                                             ->  Seq Scan on ejemplar e  (cost=0.00..246.00 rows=15000 width=18) (actual time=0.006..0.700 rows=15000 loops=2)
+                                 ->  Hash  (cost=98.00..98.00 rows=5000 width=24) (actual time=0.864..0.864 rows=5000 loops=2)
+                                       Buckets: 8192  Batches: 1  Memory Usage: 342kB
+                                       ->  Seq Scan on libro l  (cost=0.00..98.00 rows=5000 width=24) (actual time=0.008..0.354 rows=5000 loops=2)
+ Planning Time: 0.323 ms
+ Execution Time: 77.455 ms
+(27 rows)
+
+=================== A3. Desnormalizar libro.disponibles ===================
+ALTER TABLE
+UPDATE 5000
+ALTER TABLE
+ANALYZE
+--- Resultado vs predicción
+ disponibles | libros 
+-------------+--------
+           2 |   3750
+           3 |   1250
+(2 rows)
+
+--- A3b catálogo con la columna disponibles (corrida 1 de 3)
+                                              QUERY PLAN                                              
+------------------------------------------------------------------------------------------------------
+ Seq Scan on libro  (cost=0.00..158.50 rows=101 width=28) (actual time=0.041..0.418 rows=111 loops=1)
+   Filter: ((titulo)::text ~~ 'Libro 12%'::text)
+   Rows Removed by Filter: 4889
+ Planning Time: 0.075 ms
+ Execution Time: 0.430 ms
+(5 rows)
+
+--- A3b catálogo con la columna disponibles (corrida 2 de 3)
+                                              QUERY PLAN                                              
+------------------------------------------------------------------------------------------------------
+ Seq Scan on libro  (cost=0.00..158.50 rows=101 width=28) (actual time=0.017..0.377 rows=111 loops=1)
+   Filter: ((titulo)::text ~~ 'Libro 12%'::text)
+   Rows Removed by Filter: 4889
+ Planning Time: 0.020 ms
+ Execution Time: 0.384 ms
+(5 rows)
+
+--- A3b catálogo con la columna disponibles (corrida 3 de 3)
+                                              QUERY PLAN                                              
+------------------------------------------------------------------------------------------------------
+ Seq Scan on libro  (cost=0.00..158.50 rows=101 width=28) (actual time=0.013..0.365 rows=111 loops=1)
+   Filter: ((titulo)::text ~~ 'Libro 12%'::text)
+   Rows Removed by Filter: 4889
+ Planning Time: 0.018 ms
+ Execution Time: 0.372 ms
+(5 rows)
+
+--- A3(c). Alguien registra un préstamo y olvida actualizar la copia
+INSERT 0 1
+CREATE VIEW
+     isbn      | titulo  | guardado | calculado 
+---------------+---------+----------+-----------
+ 9780000000001 | Libro 1 |        3 |         2
+(1 row)
+
+UPDATE 1
+ filas_en_descuadre_tras_corregir 
+----------------------------------
+                                0
+(1 row)
+
+DELETE 1
+UPDATE 1
+ filas_en_descuadre_tras_deshacer 
+----------------------------------
+                                0
+(1 row)
+
+=================== A4. Vista materializada top_prestados ===================
+SELECT 20
+--- A4b lectura de la vista materializada (corrida 1 de 3)
+                                                 QUERY PLAN                                                  
+-------------------------------------------------------------------------------------------------------------
+ Seq Scan on top_prestados  (cost=0.00..11.60 rows=160 width=482) (actual time=0.006..0.007 rows=20 loops=1)
+ Planning Time: 0.065 ms
+ Execution Time: 0.014 ms
+(3 rows)
+
+--- A4b lectura de la vista materializada (corrida 2 de 3)
+                                                 QUERY PLAN                                                  
+-------------------------------------------------------------------------------------------------------------
+ Seq Scan on top_prestados  (cost=0.00..11.60 rows=160 width=482) (actual time=0.002..0.003 rows=20 loops=1)
+ Planning Time: 0.010 ms
+ Execution Time: 0.007 ms
+(3 rows)
+
+--- A4b lectura de la vista materializada (corrida 3 de 3)
+                                                 QUERY PLAN                                                  
+-------------------------------------------------------------------------------------------------------------
+ Seq Scan on top_prestados  (cost=0.00..11.60 rows=160 width=482) (actual time=0.002..0.004 rows=20 loops=1)
+ Planning Time: 0.011 ms
+ Execution Time: 0.008 ms
+(3 rows)
+
+--- A4(c). Un mes de mucho movimiento de un libro que no estaba en el top
+ filas_top | puesto_20_prestamos 
+-----------+---------------------
+        20 |                 481
+(1 row)
+
+INSERT 0 4000
+--- top_prestados SIN refrescar (atrasada): el libro 5000 no aparece
+ isbn | titulo | prestamos 
+------+--------+-----------
+(0 rows)
+
+     isbn      | titulo  | prestamos 
+---------------+---------+-----------
+ 9780000000001 | Libro 1 |      3880
+ 9780000000002 | Libro 2 |      1881
+ 9780000000003 | Libro 3 |      1401
+(3 rows)
+
+--- la consulta directa (a) ya lo ve
+     isbn      |   titulo   | prestamos 
+---------------+------------+-----------
+ 9780000005000 | Libro 5000 |      4021
+ 9780000000001 | Libro 1    |      3880
+ 9780000000002 | Libro 2    |      1881
+(3 rows)
+
+REFRESH MATERIALIZED VIEW
+--- top_prestados DESPUÉS del REFRESH
+     isbn      |   titulo   | prestamos 
+---------------+------------+-----------
+ 9780000005000 | Libro 5000 |      4021
+ 9780000000001 | Libro 1    |      3880
+ 9780000000002 | Libro 2    |      1881
+(3 rows)
+
+=================== A5. fecha_esperada: ¿derivada o histórica? ===================
+ prestamos | no_cumplen_regla_de_14_dias 
+-----------+-----------------------------
+    307750 |                           0
+(1 row)
+

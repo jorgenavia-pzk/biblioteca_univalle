@@ -9,9 +9,10 @@
 -- Sin "-v archivo=..." carga /scripts/datos/libros_semilla.csv.
 --
 -- Destino de cada fila válida (el CSV no coincide 1 a 1 con el esquema):
---   isbn, titulo, categoria, anio  → libro
+--   isbn, titulo, anio             → libro
+--   categoria                      → categoria (si no existe) + libro.id_categoria
 --   autor                          → autor (si no existe) + libro_autor
---   ejemplares_disponibles = n     → n filas en ejemplar (copias 1..n, DISPONIBLE)
+--   ejemplares_disponibles = n     → n filas en ejemplar (copias 1..n, condición BUENO)
 
 
 SET search_path TO biblioteca, public;
@@ -99,11 +100,19 @@ INSERT INTO autor (nombre)
 SELECT DISTINCT autor FROM stg_libro WHERE motivo IS NULL
 ON CONFLICT (nombre) DO NOTHING;
 
--- 5b. Libros válidos
-INSERT INTO libro (isbn, titulo, categoria, anio_publicacion)
-SELECT isbn, titulo, categoria, anio_publicacion::smallint
+-- 5b. Categorías nuevas (la misma categoría con otras mayúsculas no se duplica) y libros válidos
+INSERT INTO categoria (nombre)
+SELECT DISTINCT ON (lower(categoria)) categoria
 FROM stg_libro
-WHERE motivo IS NULL;
+WHERE motivo IS NULL
+ORDER BY lower(categoria), linea_csv
+ON CONFLICT (lower(nombre)) DO NOTHING;
+
+INSERT INTO libro (isbn, titulo, id_categoria, anio_publicacion)
+SELECT s.isbn, s.titulo, c.id_categoria, s.anio_publicacion::smallint
+FROM stg_libro s
+JOIN categoria c ON lower(c.nombre) = lower(s.categoria)
+WHERE s.motivo IS NULL;
 
 -- 5c. Relación escribe (libro_autor)
 INSERT INTO libro_autor (id_libro, id_autor)

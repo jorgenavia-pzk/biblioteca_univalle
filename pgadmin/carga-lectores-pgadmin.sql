@@ -75,7 +75,7 @@ UPDATE stg_lector SET motivo = CASE
     WHEN telefono !~ '^[0-9]{7,15}$'              THEN 'teléfono no numérico o de longitud inválida'
     WHEN EXISTS (SELECT 1 FROM usuario u WHERE u.documento = stg_lector.documento)
                                                   THEN 'documento ya existe'
-    WHEN EXISTS (SELECT 1 FROM usuario u WHERE u.correo = stg_lector.correo)
+    WHEN EXISTS (SELECT 1 FROM usuario u WHERE lower(u.correo) = stg_lector.correo)
                                                   THEN 'correo ya registrado por otro usuario'
     WHEN EXISTS (SELECT 1 FROM usuario u WHERE u.username = stg_lector.documento)
                                                   THEN 'username (documento) ya en uso'

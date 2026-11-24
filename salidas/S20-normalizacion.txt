@@ -1,0 +1,83 @@
+SET
+===== ANTES =====
+ libros | categorias_distintas | ejemplares | ejemplares_prestado | usuarios | prestamos | prestamos_abiertos 
+--------+----------------------+------------+---------------------+----------+-----------+--------------------
+     32 |                    9 |         94 |                  19 |       23 |        28 |                 19
+(1 row)
+
+--- precondición 1: copias con más de un préstamo abierto (esperado: 0 filas)
+ id_libro | numero_copia | abiertos 
+----------+--------------+----------
+(0 rows)
+
+--- precondición 2: correos que chocarían al comparar en minúsculas (esperado: 0 filas)
+ correo | count 
+--------+-------
+(0 rows)
+
+--- precondición 3: estado guardado que contradice a prestamo (esperado: 0 filas)
+ id_libro | numero_copia | estado 
+----------+--------------+--------
+(0 rows)
+
+BEGIN
+SELECT 32
+SELECT 94
+CREATE TABLE
+CREATE INDEX
+INSERT 0 9
+ALTER TABLE
+UPDATE 32
+ALTER TABLE
+--- verificación 1: libros sin categoría (0), categorías creadas (9) y EXCEPT en los dos sentidos (0 y 0)
+ libros_sin_categoria | categorias 
+----------------------+------------
+                    0 |          9
+(1 row)
+
+ isbn | categoria 
+------+-----------
+(0 rows)
+
+ isbn | nombre 
+------+--------
+(0 rows)
+
+ALTER TABLE
+CREATE INDEX
+ALTER TABLE
+CREATE INDEX
+--- verificación 2: un INSERT con el correo en mayúsculas debe ser rechazado
+DO
+psql:/scripts/normalizacion.sql:107: NOTICE:  OK: el correo en mayúsculas fue rechazado (unique_violation)
+CREATE TYPE
+ALTER TABLE
+UPDATE 94
+ALTER TABLE
+ALTER TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE VIEW
+CREATE VIEW
+--- verificación 3: el estado viejo y la situación calculada coinciden (EXCEPT en los dos sentidos: 0 y 0)
+ id_libro | numero_copia | estado 
+----------+--------------+--------
+(0 rows)
+
+ id_libro | numero_copia | situacion 
+----------+--------------+-----------
+(0 rows)
+
+ALTER TABLE
+DROP TYPE
+--- verificación 4: un segundo préstamo abierto de la misma copia debe ser rechazado
+DO
+===== DESPUÉS =====
+psql:/scripts/normalizacion.sql:183: NOTICE:  OK: segundo préstamo abierto de la misma copia rechazado (unique_violation)
+ libros | categorias | ejemplares | ejemplares_prestado | ejemplares_disponible | usuarios | prestamos | prestamos_abiertos 
+--------+------------+------------+---------------------+-----------------------+----------+-----------+--------------------
+     32 |          9 |         94 |                  19 |                    75 |       23 |        28 |                 19
+(1 row)
+
+COMMIT
+ANALYZE
