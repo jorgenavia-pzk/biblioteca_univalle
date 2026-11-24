@@ -1,6 +1,13 @@
 # Hito 3 · Normalización del esquema `biblioteca`
 
-**750006C Bases de Datos · Universidad del Valle** · Integrantes: Anthony · Esteban · Jorge · Yoskar · 24 de noviembre de 2026
+**750006C Bases de Datos · Universidad del Valle** · 24 de noviembre de 2026
+
+| Integrante | Código | Correo |
+|---|---|---|
+| Paulo Esteban Ordoñez Gutierrez | 2517885 | paulo.ordonez@correounivalle.edu.co |
+| Yoskar Alomia Alvarado | 2521297 | yoskar.alomia@correounivalle.edu.co |
+| Jorge Luis Navia López | 2519528 | jorge.luis.navia@correounivalle.edu.co |
+| Anthony Alejandro Mora Melo | 2517317 | alejandromoram077@gmail.com |
 
 Todo se ejecutó en PostgreSQL 16 (Docker, `biblioteca_pg`). Evidencia: `entregas/S20/evidencia-antes.sql` → `salidas/S20-evidencia-antes.txt`; migración: `postgres/scripts/normalizacion.sql` → `salidas/S20-normalizacion.txt`; verificación: `entregas/S20/verificacion-despues.sql` → `salidas/S20-verificacion-despues.txt`; reportes sobre el esquema nuevo: `salidas/S20-reportes.txt`. Las mediciones de la parte A están en `PARTE-A.md`.
 

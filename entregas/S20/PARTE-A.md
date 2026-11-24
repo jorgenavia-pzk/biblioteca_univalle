@@ -1,6 +1,6 @@
 # S20 · Parte A: medir, indexar, desnormalizar
 
-Grupo: Anthony · Esteban · Jorge · Yoskar. Esquema `rendimiento` (5 000 títulos, 15 000 ejemplares, 2 000 lectores, 303 750 préstamos, 3 750 abiertos), PostgreSQL 16 en Docker.
+Grupo: Paulo Esteban Ordoñez Gutierrez · Yoskar Alomia Alvarado · Jorge Luis Navia López · Anthony Alejandro Mora Melo (integrantes y códigos en `NORMALIZACION.md`). Esquema `rendimiento` (5 000 títulos, 15 000 ejemplares, 2 000 lectores, 303 750 préstamos, 3 750 abiertos), PostgreSQL 16 en Docker.
 Todo el SQL está en `parte-a.sql` y la salida completa (con las 3 corridas de cada medición) en `salidas/S20-parte-a.txt`. Se corre con:
 
 ```powershell
